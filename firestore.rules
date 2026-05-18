@@ -1,0 +1,270 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========== HELPER FUNCTIONS ==========
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+  return isAuthenticated() && (
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.uid == 'oTjSOIKPRMetFbXG1LQ4bzo1rXq1'
+  );
+}
+
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isNGO() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'ngo';
+    }
+    
+    function isVolunteer() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'volunteer';
+    }
+    
+    function isDonor() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'donor';
+    }
+    
+    // ========== USERS COLLECTION ==========
+    
+    match /users/{userId} {
+      // Authenticated users can read document profiles (required for finding NGOs/Volunteers to notify)
+      allow read, get, list: if isAuthenticated();
+      
+      // Users can create their own profile during registration
+      allow create: if isAuthenticated() && 
+                      request.auth.uid == userId &&
+                      // Prevent setting admin role during registration
+                      !request.resource.data.keys().hasAny(['role']) &&
+                      // Ensure required fields
+                      request.resource.data.keys().hasAll(['email', 'name', 'userType']);
+      
+      // Users can update their own data (except role and sensitive fields)
+      allow update: if (isOwner(userId) && 
+                      // Cannot change role or admin status
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin', 'verified']) &&
+                      // Cannot change email
+                      request.resource.data.email == resource.data.email) || isAdmin();
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    match /ngoVerification/{ngoId} {
+      // NGOs can read their own verification, admins can read all
+      allow read: if isOwner(ngoId) || isAdmin();
+      
+      // NGOs can create and update their own verification
+      allow create: if isOwner(ngoId) && isNGO();
+      allow update: if (isOwner(ngoId) && isNGO() && 
+                        (
+                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy']) &&
+                          (
+                            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+                            request.resource.data.status in ['draft', 'pending']
+                          )
+                        )) || isAdmin();
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========== DONOR VERIFICATION ==========
+    
+    match /donorVerification/{donorId} {
+      // Donors can read their own verification, admins can read all
+      allow read: if isOwner(donorId) || isAdmin();
+      
+      // Donors can create and update their own verification
+      allow create: if isOwner(donorId) && isDonor();
+      allow update: if (isOwner(donorId) && isDonor() && 
+                        (
+                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy']) &&
+                          (
+                            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+                            request.resource.data.status in ['draft', 'pending']
+                          )
+                        )) || isAdmin();
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========== VOLUNTEER VERIFICATION ==========
+    
+    match /volunteerVerification/{volunteerId} {
+      // Volunteers can read their own verification, admins can read all
+      allow read: if isOwner(volunteerId) || isAdmin();
+      
+      // Volunteers can create and update their own verification
+      allow create: if isOwner(volunteerId) && isVolunteer();
+      allow update: if (isOwner(volunteerId) && isVolunteer() && 
+                        (
+                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy']) &&
+                          (
+                            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+                            request.resource.data.status in ['draft', 'pending']
+                          )
+                        )) || isAdmin();
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+    
+    // ========== DONATIONS ==========
+    
+    match /donations/{donationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.donorId) || isNGO() || isVolunteer() || isAdmin();
+      allow delete: if isOwner(resource.data.donorId) || isAdmin();
+    }
+    
+    // ========== DELIVERIES ==========
+    
+    match /deliveries/{deliveryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if (isVolunteer() && resource.data.volunteerId == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ========== PASSWORD RESET CODES ==========
+    match /passwordResetCodes/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      
+      // Users can update their own notifications (mark as read only)
+      allow update: if isAuthenticated() && 
+                      resource.data.userId == request.auth.uid &&
+                      // Can only update read status
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ========== CONVERSATIONS & CHAT ==========
+    
+    match /conversations/{conversationId} {
+      // Users can read/write conversations they are participants in
+      allow read, write: if isAuthenticated() && 
+                           request.auth.uid in resource.data.participants;
+      
+      // Allow initial creation of a conversation
+      allow create: if isAuthenticated() && 
+                      request.auth.uid in request.resource.data.participants &&
+                      request.resource.data.participants.size() == 2;
+      
+      match /messages/{messageId} {
+        // Users can read/write messages in their own conversations
+        allow read, write: if isAuthenticated() && 
+                             request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+                             
+        // Allow creation of a message
+        allow create: if isAuthenticated() && 
+                        request.resource.data.senderId == request.auth.uid &&
+                        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+      }
+    }
+    
+    // ========== FEEDBACK ==========
+    
+    match /feedback/{feedbackId} {
+      // Users can read their own feedback, admins can read all
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Any authenticated user can submit feedback
+      allow create: if isAuthenticated() &&
+                      request.resource.data.keys().hasAll(['userId']) &&
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Only admins can update feedback status
+      allow update: if isAdmin();
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========== FOOD REQUESTS ==========
+    match /foodRequests/{requestId} {
+      // Anyone authenticated can read
+      allow read: if isAuthenticated();
+      // Only authenticated users can create
+      allow create: if isAuthenticated();
+      // Authenticated users can update
+      allow update: if isAuthenticated();
+      // Authenticated users can delete
+      allow delete: if isAuthenticated();
+    }
+    
+    // ========== NGO REQUIREMENTS ==========
+    match /ngoRequirements/{requirementId} {
+      allow read: if isAuthenticated();
+      allow create: if isNGO() && request.resource.data.ngoId == request.auth.uid;
+      allow update: if (isNGO() && resource.data.ngoId == request.auth.uid) || isAdmin();
+      allow delete: if (isNGO() && resource.data.ngoId == request.auth.uid) || isAdmin();
+    }
+    
+    // ========== RECOMMENDATION LOGS ==========
+    match /recommendationLogs/{logId} {
+      // Backend/Cloud Functions generates logs via Admin SDK (bypasses rules)
+      // Users can only read recommendations targeted to them
+      allow read: if isAuthenticated() && (
+        resource.data.targetId == request.auth.uid || isAdmin()
+      );
+      allow write: if false; 
+    }
+
+    // ========== OTHER SHARED PROTOTYPE COLLECTIONS ==========
+    match /schedules/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /scheduling/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /deliveryTracking/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /volunteerLocations/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /ratings/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /userPreferences/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /requestHistory/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /callLogs/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    match /otp/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // ========== DEFAULT DENY ==========
+    // Any collection not explicitly allowed above is denied
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -1,0 +1,92 @@
+diff --git a/node_modules/@heyputer/puter.js/src/lib/polyfills/xhrshim.js b/node_modules/@heyputer/puter.js/src/lib/polyfills/xhrshim.js
+index 695a42a..ae290a6 100644
+--- a/node_modules/@heyputer/puter.js/src/lib/polyfills/xhrshim.js
++++ b/node_modules/@heyputer/puter.js/src/lib/polyfills/xhrshim.js
+@@ -3,6 +3,52 @@
+ /* global module */
+ /* global EventTarget, AbortController, DOMException */
+ 
++// Polyfill EventTarget if it's missing (e.g., in React Native)
++if (typeof globalThis.EventTarget === 'undefined') {
++    globalThis.EventTarget = class EventTarget {
++        constructor() { this._listeners = new Map(); }
++        addEventListener(type, listener) {
++            if (!this._listeners.has(type)) this._listeners.set(type, new Set());
++            this._listeners.get(type).add(listener);
++        }
++        removeEventListener(type, listener) {
++            if (this._listeners.has(type)) this._listeners.get(type).delete(listener);
++        }
++        dispatchEvent(event) {
++            const listeners = this._listeners.get(event.type);
++            if (listeners) {
++                listeners.forEach(listener => {
++                    if (typeof listener === 'function') listener.call(this, event);
++                    else if (listener && typeof listener.handleEvent === 'function') listener.handleEvent(event);
++                });
++            }
++            return true;
++        }
++    };
++    // Also ensure basic Event exists
++    if (typeof globalThis.Event === 'undefined') {
++        globalThis.Event = class Event {
++            constructor(type) { this.type = type; this.defaultPrevented = false; }
++        };
++    }
++    // And CustomEvent
++    if (typeof globalThis.CustomEvent === 'undefined') {
++        globalThis.CustomEvent = class CustomEvent extends globalThis.Event {
++            constructor(type, detail) { super(type); this.detail = detail; }
++        };
++    }
++    // And MessageEvent (used in Workers.js)
++    if (typeof globalThis.MessageEvent === 'undefined') {
++        globalThis.MessageEvent = class MessageEvent extends globalThis.Event {
++            constructor(type, init) { super(type); this.data = init ? init.data : null; }
++        };
++    }
++}
++
++// Ensure EventTarget is in the local scope for class extension
++const EventTarget = globalThis.EventTarget;
++const Event = globalThis.Event;
++
+ const sReadyState = Symbol('readyState');
+ const sHeaders = Symbol('headers');
+ const sRespHeaders = Symbol('response headers');
+diff --git a/node_modules/@heyputer/puter.js/src/modules/PuterDialog.js b/node_modules/@heyputer/puter.js/src/modules/PuterDialog.js
+index 1f3395f..b50ea24 100644
+--- a/node_modules/@heyputer/puter.js/src/modules/PuterDialog.js
++++ b/node_modules/@heyputer/puter.js/src/modules/PuterDialog.js
+@@ -473,7 +473,9 @@ class PuterDialog extends (globalThis.HTMLElement || Object) { // It will fall b
+ }
+ if ( PuterDialog.__proto__ === globalThis.HTMLElement )
+ {
+-    customElements.define('puter-dialog', PuterDialog);
++    if (typeof customElements !== 'undefined') {
++        customElements.define('puter-dialog', PuterDialog);
++    }
+ }
+ 
+ export default PuterDialog;
+diff --git a/node_modules/@heyputer/puter.js/src/modules/networking/PTLS.js b/node_modules/@heyputer/puter.js/src/modules/networking/PTLS.js
+index 0a25b79..d9cccd9 100644
+--- a/node_modules/@heyputer/puter.js/src/modules/networking/PTLS.js
++++ b/node_modules/@heyputer/puter.js/src/modules/networking/PTLS.js
+@@ -13,10 +13,12 @@ export class PTLSSocket extends PSocket {
+             if ( ! rustls ) {
+                 // Safari exists unfortunately without good ReadableStream support. Until that is fixed we need this.
+                 if ( ! globalThis.ReadableByteStreamController ) {
+-                    await import( /* webpackIgnore: true */ 'https://unpkg.com/web-streams-polyfill@3.0.2/dist/polyfill.js');
++                    await import('web-streams-polyfill');
+                 }
+-                rustls = (await import( /* webpackIgnore: true */ 'https://puter-net.b-cdn.net/rustls.js'));
+-                await rustls.default('https://puter-net.b-cdn.net/rustls.wasm');
++                // rustls is commented out because Metro does not support URL imports.
++                // This feature (TLS over Wisp) is not required for the AI chatbot.
++                // rustls = (await import( /* webpackIgnore: true */ 'https://puter-net.b-cdn.net/rustls.js'));
++                // await rustls.default('https://puter-net.b-cdn.net/rustls.wasm');
+             }
+ 
+             let cancelled = false;

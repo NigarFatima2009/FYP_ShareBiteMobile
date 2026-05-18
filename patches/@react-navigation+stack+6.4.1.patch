@@ -1,0 +1,20 @@
+diff --git a/node_modules/@react-navigation/stack/src/views/Stack/Card.tsx b/node_modules/@react-navigation/stack/src/views/Stack/Card.tsx
+index af9cbbd..78b573c 100644
+--- a/node_modules/@react-navigation/stack/src/views/Stack/Card.tsx
++++ b/node_modules/@react-navigation/stack/src/views/Stack/Card.tsx
+@@ -2,7 +2,6 @@ import Color from 'color';
+ import * as React from 'react';
+ import {
+   Animated,
+-  InteractionManager,
+   Platform,
+   StyleProp,
+   StyleSheet,
+@@ -10,6 +9,7 @@ import {
+   ViewProps,
+   ViewStyle,
+ } from 'react-native';
++import InteractionManager from 'react-native/Libraries/Interaction/InteractionManager';
+ import type { EdgeInsets } from 'react-native-safe-area-context';
+ 
+ import { forModalPresentationIOS } from '../../TransitionConfigs/CardStyleInterpolators';

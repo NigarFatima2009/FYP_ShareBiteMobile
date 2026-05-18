@@ -1,0 +1,84 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <rect width="1080" height="1920" fill="url(#splashGradient)"/>
+  
+  <defs>
+    <linearGradient id="splashGradient" x1="540" y1="0" x2="540" y2="1920" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="50%" stop-color="#FF8E53"/>
+      <stop offset="100%" stop-color="#FFA726"/>
+    </linearGradient>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Decorative circles in background -->
+  <circle cx="200" cy="300" r="100" fill="white" opacity="0.1"/>
+  <circle cx="880" cy="500" r="150" fill="white" opacity="0.08"/>
+  <circle cx="150" cy="1600" r="120" fill="white" opacity="0.1"/>
+  <circle cx="900" cy="1700" r="80" fill="white" opacity="0.12"/>
+  
+  <!-- Main icon container -->
+  <g transform="translate(540, 760)">
+    <!-- White circle background for icon -->
+    <circle cx="0" cy="0" r="180" fill="white" filter="url(#glow)"/>
+    
+    <!-- Plate -->
+    <circle cx="0" cy="0" r="140" fill="white"/>
+    <circle cx="0" cy="0" r="140" fill="none" stroke="#FFE5E5" stroke-width="12"/>
+    
+    <!-- Fork -->
+    <g transform="translate(-80, -40)">
+      <rect x="20" y="0" width="12" height="160" rx="6" fill="#FF6B6B"/>
+      <rect x="5" y="0" width="9" height="70" rx="4.5" fill="#FF6B6B"/>
+      <rect x="35" y="0" width="9" height="70" rx="4.5" fill="#FF6B6B"/>
+    </g>
+    
+    <!-- Spoon -->
+    <g transform="translate(50, -40)">
+      <rect x="15" y="50" width="12" height="110" rx="6" fill="#FF8E53"/>
+      <ellipse cx="21" cy="30" rx="20" ry="30" fill="#FF8E53"/>
+    </g>
+    
+    <!-- Heart -->
+    <path d="M0,-10 C-6,-18 -15,-18 -21,-10 C-27,-2 -27,3 -21,9 L0,30 L21,9 C27,3 27,-2 21,-10 C15,-18 6,-18 0,-10 Z" 
+          fill="#FF6B6B" opacity="0.9"/>
+  </g>
+  
+  <!-- App name -->
+  <text x="540" y="1100" font-family="Arial, sans-serif" font-size="72" font-weight="bold" 
+        fill="white" text-anchor="middle" letter-spacing="2">
+    ShareBite
+  </text>
+  
+  <!-- Tagline -->
+  <text x="540" y="1160" font-family="Arial, sans-serif" font-size="28" 
+        fill="white" text-anchor="middle" opacity="0.9">
+    Share Food, Share Love
+  </text>
+  
+  <!-- Loading indicator -->
+  <g transform="translate(540, 1400)">
+    <circle cx="-40" cy="0" r="8" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="0" cy="0" r="8" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="40" cy="0" r="8" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+  </g>
+  
+  <!-- Footer text -->
+  <text x="540" y="1800" font-family="Arial, sans-serif" font-size="20" 
+        fill="white" text-anchor="middle" opacity="0.7">
+    Connecting Donors with Those in Need
+  </text>
+</svg>
