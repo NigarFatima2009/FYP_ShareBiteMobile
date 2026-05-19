@@ -1,5 +1,5 @@
 {
-  "name": "ShareBite",
+  "name": "sharebite",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -81,5 +81,10 @@
     "android": {
       "javaPackageName": "com.sharebite"
     }
-  }
+  },
+  "description": "A comprehensive food donation platform connecting donors with NGOs, volunteers, and receivers. Built with React Native, Next.js, and AI-powered features.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

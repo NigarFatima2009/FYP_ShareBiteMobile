@@ -80,3 +80,13 @@ yarn-error.log
 .env.*.local
 functions/.env
 src/backend/.env
+
+#google-services.json
+google-services.json
+ios/ShareBite/GoogleService-Info.plist
+android/app/google-services.json
+ios/ShareBite/Info.plist
+
+sharebite-42667-c61cbf524302.json
+android/app/src/main/res/values/google-services.json
+sharebite-42667-c61cbf524302.json
