@@ -1,4 +1,7 @@
 {
+  "react-native": {
+    "crashlytics_debug_enabled": true
+  },
   "projects": {
     "default": "sharebite-42667"
   },

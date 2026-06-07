@@ -66,7 +66,7 @@ export default function ChatScreen() {
       }
 
       unsubscribe = await loadMessages();
-      
+
       // Fetch contact profile image if not provided
       if (!contactImage && contactId) {
         try {
@@ -104,7 +104,7 @@ export default function ChatScreen() {
 
       // Check if conversation exists FIRST to avoid security rule errors
       const convDoc = await firestore().collection('conversations').doc(conversationId).get();
-      
+
       if (!convDoc.exists) {
         // Conversation hasn't been started yet. This is normal.
         // Don't show error, just stop loading and show empty state.

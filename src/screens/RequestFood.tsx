@@ -18,13 +18,13 @@ import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import { AllergyChart } from '../components/AllergyChart';
-import { 
+import {
   getCurrentLocation,
   requestLocationPermission,
   calculateDistance,
   formatDistance,
   geocodeAddress,
-  Coordinates 
+  Coordinates
 } from '../services/locationService';
 import { calculateDonationScoreForNGO, NGORequirement } from '../services/recommendationEngine';
 
@@ -76,7 +76,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
                     .where('ngoId', '==', currentUser.uid)
                     .where('status', '==', 'Active')
                     .get();
-                  
+
                   if (!reqSnapshot.empty) {
                     const reqData = reqSnapshot.docs[0].data();
                     setNgoRequirement({
@@ -106,11 +106,11 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
   useEffect(() => {
     const initAndLoad = async () => {
       setLoading(true);
-      
+
       // Get location first
       const hasPermission = await requestLocationPermission();
       let location: Coordinates | null = null;
-      
+
       if (hasPermission) {
         const result = await getCurrentLocation();
         if (result.success && result.coordinates) {
@@ -118,17 +118,17 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
           setUserLocation(result.coordinates);
         }
       }
-      
+
       // If no GPS, use default location (Rawalpindi)
       if (!location) {
         location = { latitude: 33.5651, longitude: 73.0169 };
         setUserLocation(location);
       }
-      
+
       // Now load donations with location
       await loadDonationsWithLocation(location);
     };
-    
+
     initAndLoad();
   }, []);
 
@@ -150,7 +150,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
   const loadDonationsWithLocation = async (location: Coordinates) => {
     try {
       setLoading(true);
-      
+
       const snapshot = await firestore()
         .collection('donations')
         .get();
@@ -189,7 +189,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
 
         // Try to get coordinates from donation - check multiple formats
         let donationCoords: Coordinates | null = null;
-        
+
         if (donation.coordinates) {
           // Check if coordinates are in correct format
           if (donation.coordinates.latitude && donation.coordinates.longitude) {
@@ -206,12 +206,12 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
             };
           }
         }
-        
+
         // If no coordinates stored, try to geocode the address
         if (!donationCoords && donation.location) {
           donationCoords = geocodeAddress(donation.location);
         }
-        
+
         // Also try pickupAddress field
         if (!donationCoords && donation.pickupAddress) {
           donationCoords = geocodeAddress(donation.pickupAddress);
@@ -233,18 +233,18 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
 
       // Sort by distance first
       donationsList.sort((a: any, b: any) => a.distanceValue - b.distanceValue);
-      
+
       // AI Scoring if NGO has requirement
       if (user?.userType === 'ngo' && ngoRequirement) {
         donationsList = donationsList.map(donation => {
           const { score, reason } = calculateDonationScoreForNGO(ngoRequirement, donation);
           return { ...donation, matchScore: score, matchReason: reason };
         });
-        
+
         // Sort by match score descending
         donationsList.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
       }
-      
+
       setDonations(donationsList);
       setLoading(false);
     } catch (error) {
@@ -256,12 +256,12 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
   // Remove duplicate donations
   const removeDuplicateDonations = (donations: any[]): any[] => {
     const seen = new Map<string, any>();
-    
+
     donations.forEach(donation => {
       const normalizedTitle = (donation.foodType || donation.title || '').toLowerCase().trim();
       const normalizedLocation = (donation.location || '').toLowerCase().trim();
       const key = `${normalizedTitle}-${normalizedLocation}`;
-      
+
       let isDuplicate = false;
       for (const [, existing] of seen.entries()) {
         const similarity = calculateSimilarity(normalizedTitle, existing.normalizedTitle);
@@ -270,12 +270,12 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
           break;
         }
       }
-      
+
       if (!isDuplicate) {
         seen.set(key, { ...donation, normalizedTitle, normalizedLocation });
       }
     });
-    
+
     return Array.from(seen.values()).map(({ normalizedTitle, normalizedLocation, ...rest }) => rest);
   };
 
@@ -322,7 +322,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
       setShowAllergyModal(true);
       return;
     }
-    
+
     // Otherwise proceed with standard request
     await executeRequest(donation);
   };
@@ -332,7 +332,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
       setIsRequesting(true);
       const auth = require('@react-native-firebase/auth').default;
       const currentUser = auth().currentUser;
-      
+
       if (!currentUser) {
         Toast.show({
           type: 'error',
@@ -429,9 +429,9 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
         </View>
         <View style={styles.badgeRow}>
           {item.matchScore !== undefined && (
-            <Badge 
-              text={`${item.matchScore}% Match`} 
-              variant={item.matchScore >= 80 ? "success" : item.matchScore >= 50 ? "warning" : "default"} 
+            <Badge
+              text={`${item.matchScore}% Match`}
+              variant={item.matchScore >= 80 ? "success" : item.matchScore >= 50 ? "warning" : "default"}
               style={{ marginRight: 4 }}
             />
           )}
@@ -443,8 +443,8 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
       {item.allergens && item.allergens.length > 0 ? (
         <View style={styles.allergenSection}>
           <View style={styles.allergenHeader}>
-             <Icon name="warning" size={16} color={colors.destructive} />
-             <Text style={styles.allergenTitle}>Allergy Information</Text>
+            <Icon name="warning" size={16} color={colors.destructive} />
+            <Text style={styles.allergenTitle}>Allergy Information</Text>
           </View>
           <AllergyChart selectedAllergens={item.allergens} size={20} showLabels={false} />
         </View>
@@ -511,8 +511,8 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
   );
 
   const headerTitle = user.userType === 'ngo' ? 'Request Food' : 'Available Donations';
-  const headerSubtitle = user.userType === 'ngo' 
-    ? 'Request food for your organization' 
+  const headerSubtitle = user.userType === 'ngo'
+    ? 'Request food for your organization'
     : 'Find food assistance near you';
 
   if (loading) {
@@ -559,7 +559,7 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
               </Text>
             </View>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.requirementBannerBtn}
             onPress={() => navigation.navigate('NGORequirementCreation')}
           >
@@ -660,17 +660,17 @@ export const RequestFood: React.FC<RequestFoodProps> = ({
             </Text>
 
             <View style={styles.allergyListContainer}>
-               <AllergyChart 
-                selectedAllergens={pendingDonation?.allergens || []} 
-                horizontal={false} 
-               />
+              <AllergyChart
+                selectedAllergens={pendingDonation?.allergens || []}
+                horizontal={false}
+              />
             </View>
 
             <View style={styles.confirmBox}>
-               <Icon name="information-circle-outline" size={18} color={colors.mutedForeground} />
-               <Text style={styles.disclaimerText}>
-                 By proceeding, you acknowledge that you have verified these ingredients and accept full responsibility for food safety.
-               </Text>
+              <Icon name="information-circle-outline" size={18} color={colors.mutedForeground} />
+              <Text style={styles.disclaimerText}>
+                By proceeding, you acknowledge that you have verified these ingredients and accept full responsibility for food safety.
+              </Text>
             </View>
 
             <View style={styles.modalButtonsGroup}>

@@ -352,7 +352,7 @@ export const TrackDeliveries: React.FC<TrackDeliveriesProps> = ({
             pickupCoords = await geocodeAddressWithGoogle(addr);
           }
         }
-        
+
         if (pickupCoords) {
           setPickupLocation(pickupCoords);
         }
@@ -413,7 +413,7 @@ export const TrackDeliveries: React.FC<TrackDeliveriesProps> = ({
 
       // Simple Euclidean distance for arrival check (more efficient for threshold)
       const distKm = calculateDistance(volLocation, destination);
-      
+
       // Check if volunteer has arrived at destination (within threshold)
       if (distKm <= ARRIVAL_THRESHOLD_KM && !hasArrivedAtDestination && delivery?.status === 'in_transit') {
         setHasArrivedAtDestination(true);
@@ -583,7 +583,7 @@ export const TrackDeliveries: React.FC<TrackDeliveriesProps> = ({
   // Fit map to show all markers
   const fitMapToMarkers = () => {
     const allCoords = [volunteerLocation, pickupLocation, dropoffLocation, userLocation].filter(isValidCoordinate);
-    
+
     // Add start and end of route to ensure it's fully visible
     if (routePolyline.length > 0) {
       allCoords.push(routePolyline[0]);
@@ -883,9 +883,9 @@ export const TrackDeliveries: React.FC<TrackDeliveriesProps> = ({
             <View style={[styles.infoRow, { marginTop: spacing.xs }]}>
               <Icon name="time-outline" size={16} color={colors.mutedForeground} />
               <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-                {delivery.status === 'pending' ? 'Awaiting approval' : 
-                 delivery.status === 'approved' ? 'Searching for volunteer...' : 
-                 'Locating volunteer...'}
+                {delivery.status === 'pending' ? 'Awaiting approval' :
+                  delivery.status === 'approved' ? 'Searching for volunteer...' :
+                    'Locating volunteer...'}
               </Text>
             </View>
           )}

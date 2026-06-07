@@ -205,12 +205,13 @@ service cloud.firestore {
     match /foodRequests/{requestId} {
       // Anyone authenticated can read
       allow read: if isAuthenticated();
-      // Only authenticated users can create
-      allow create: if isAuthenticated();
-      // Authenticated users can update
-      allow update: if isAuthenticated();
-      // Authenticated users can delete
-      allow delete: if isAuthenticated();
+      // Only authenticated users can create, and must set themselves as the creator
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+      // Users can only update their own requests
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Users can only delete their own requests, admins can delete any
+      allow delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
     }
     
     // ========== NGO REQUIREMENTS ==========

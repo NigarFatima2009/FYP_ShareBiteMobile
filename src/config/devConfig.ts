@@ -26,11 +26,7 @@ export const configureDevEnvironment = () => {
     'Please use `onAuthStateChanged()` instead',
     'Please use `collection()` instead',
     'Please use `doc()` instead',
-    'Firestore',
-    'permission-denied',
-    'The caller does not have permission',
     'Uncaught (in promise)',
-    'Error: [firestore/permission-denied]',
     
     // React Native warnings
     'VirtualizedLists should never be nested',

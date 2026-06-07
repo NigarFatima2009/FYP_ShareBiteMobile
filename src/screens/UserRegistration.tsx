@@ -560,9 +560,9 @@ export const UserRegistration: React.FC<UserRegistrationProps> = ({
                   onAddressSelect={(address, coords) => {
                     handleInputChange('address', address);
                     if (coords) {
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        coordinates: coords 
+                      setFormData(prev => ({
+                        ...prev,
+                        coordinates: coords
                       }));
                     }
                   }}

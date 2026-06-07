@@ -1,0 +1,13 @@
+diff --git a/android/src/main/jni/CMakeLists.txt b/android/src/main/jni/CMakeLists.txt
+index 1234567..abcdefg 100644
+--- a/android/src/main/jni/CMakeLists.txt
++++ b/android/src/main/jni/CMakeLists.txt
+@@ -33,6 +33,7 @@ if (REACTNATIVE_MERGED_SO)
+   target_link_libraries(
+           ${LIB_TARGET_NAME}
+           fbjni
+           jsi
+           reactnative
++          c++_shared
+   )
+ else()

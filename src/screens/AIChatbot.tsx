@@ -111,7 +111,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
 
     try {
       logger.info('Sending message to Puter AI (GPT-5.2)...');
-      
+
       const response = await puterChatbot.chat(
         messageText,
         user?.uid || user?.id || 'guest',
@@ -129,7 +129,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
 
         const finalMessages = [...updatedMessages, botMessage];
         setMessages(finalMessages);
-        
+
         // Persist to local storage
         const session: ChatSession = {
           id: sessionId,
@@ -138,7 +138,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
           timestamp: new Date().toISOString(),
           messages: finalMessages,
         };
-        
+
         await chatStorageService.saveSession(session);
         loadSessions(); // Refresh history list in background
         logger.info('Chat session saved locally');
@@ -185,8 +185,8 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
       ) : (
         <ScrollView style={styles.sessionList}>
           {sessions.map(session => (
-            <TouchableOpacity 
-              key={session.id} 
+            <TouchableOpacity
+              key={session.id}
               style={styles.sessionCard}
               onPress={() => openSession(session)}
             >
@@ -197,7 +197,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
                   {new Date(session.timestamp).toLocaleDateString()} {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => deleteSession(session.id)}
                 style={styles.deleteIconButton}
               >
@@ -261,7 +261,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
                 </Text>
               </View>
             </View>
-            
+
             {/* Suggestion buttons for bot messages */}
             {message.sender === 'bot' && message.suggestions && message.suggestions.length > 0 && (
               <View style={styles.suggestionsContainer}>
@@ -354,13 +354,13 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ navigation, user }) => {
                 <Text style={styles.headerSubtitle}>AI-Powered Assistant</Text>
               </View>
               <View style={styles.headerActions}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setIsHistoryView(!isHistoryView)}
                   style={styles.headerActionButton}
                 >
                   <Icon name={isHistoryView ? "chatbubble-ellipses" : "archive-outline"} size={22} color="#fff" />
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={startNewChat}
                   style={styles.headerActionButton}
                 >

@@ -14,6 +14,7 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import auth from '@react-native-firebase/auth';
+import crashlytics from '@react-native-firebase/crashlytics';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import { loginUser, logoutUser, signInWithGoogle, sendVerificationEmail } from '../services/auth';
 
@@ -359,6 +360,35 @@ export const Login: React.FC<LoginProps> = ({ navigation, onLogin }) => {
               <Text style={styles.registerLink}>Create Account</Text>
             </TouchableOpacity>
           </View>
+
+          {__DEV__ && (
+            <TouchableOpacity
+              style={{
+                marginTop: spacing.lg,
+                padding: spacing.md,
+                backgroundColor: colors.destructive,
+                borderRadius: borderRadius.md,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+              onPress={() => {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Crashing Application...',
+                  text2: 'Firebase Crashlytics test crash triggered.',
+                });
+                setTimeout(() => {
+                  crashlytics().crash();
+                }, 1000);
+              }}
+            >
+              <Icon name="bug-outline" size={20} color={colors.white} style={{ marginRight: spacing.sm }} />
+              <Text style={{ color: colors.white, fontFamily: typography.fontFamily.medium, fontSize: typography.fontSize.sm }}>
+                Trigger Test Crash
+              </Text>
+            </TouchableOpacity>
+          )}
         </Card>
       </ScrollView>
     </KeyboardAvoidingView >

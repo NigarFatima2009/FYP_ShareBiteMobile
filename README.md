@@ -23,14 +23,12 @@ A comprehensive food donation platform connecting donors with NGOs, volunteers, 
 
 ### AI Backend
 - **Chatbot** for automated support
-- **Graceful degradation** when offline
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 20+
 - Android Studio (for mobile app)
-- Python 3.9+ (for AI backend)
 - Firebase account
 
 ### Mobile App Setup
@@ -56,30 +54,8 @@ npm run dev
 
 Visit http://localhost:3000
 
-### AI Backend Setup
-
-```bash
-cd ai-backend
-pip install -r requirements.txt
-python main.py
-```
-
-API available at http://localhost:8000
 
 ## 📱 Mobile App Configuration
-
-### Update AI Backend URL
-
-Edit `src/config/aiConfig.ts`:
-
-```typescript
-export const AI_CONFIG = {
-  PRODUCTION_URL: 'https://your-ai-backend.onrender.com',
-  API_URL: __DEV__ 
-    ? 'http://localhost:8000'
-    : 'https://your-ai-backend.onrender.com',
-};
-```
 
 ### Firebase Setup
 
@@ -141,7 +117,6 @@ ShareBite/
 - Firebase (Auth, Firestore, Storage)
 - React Navigation
 - React Native Maps
-- Axios (for AI backend)
 
 ### Admin Panel
 - Next.js 14
@@ -149,13 +124,6 @@ ShareBite/
 - Tailwind CSS
 - Firebase
 - Leaflet (maps)
-
-### AI Backend
-- Python 3.9+
-- FastAPI
-- scikit-learn
-- OpenCV
-- Firebase Admin
 
 ## 🌍 Configured for Pakistan
 

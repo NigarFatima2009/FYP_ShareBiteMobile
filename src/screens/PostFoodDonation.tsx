@@ -211,7 +211,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
     if (!formData.title.trim()) newErrors.title = 'Food title is required';
     if (!formData.foodType) newErrors.foodType = 'Please select a food type';
     if (!formData.servings || parseInt(formData.servings) < 1) newErrors.servings = 'Please specify servings';
-    
+
     // Expiry Check
     if (formData.bestBefore < new Date()) {
       newErrors.bestBefore = 'Best before date cannot be in the past';
@@ -290,12 +290,12 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
   // Local safety keywords for fallback when AI is offline
   const runLocalSafetyCheck = (text: string) => {
     const suspiciousWords = [
-      'mold', 'smell', 'scent', 'sour', 'old', 'expired', 'stink', 'bad', 
+      'mold', 'smell', 'scent', 'sour', 'old', 'expired', 'stink', 'bad',
       'fungus', 'rotten', 'spoiled', 'slimy', 'discolored', 'fuzzy', 'leak'
     ];
     const textLower = text.toLowerCase();
     const found = suspiciousWords.find(word => textLower.includes(word));
-    
+
     if (found) {
       return { isSafe: false, reason: `Local Scan: Potential safety issue detected.`, advice: `Found suspicious word "${found}". Please ensure food is fresh and not spoiled.` };
     }
@@ -318,16 +318,16 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
     const expiryDate = formData.bestBefore instanceof Date ? formData.bestBefore : new Date(formData.bestBefore);
     // Allow a 5 minute buffer for system clock drift
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    
+
     if (!expiryDate || isNaN(expiryDate.getTime()) || expiryDate < fiveMinutesAgo) {
-       Toast.show({
-          type: 'error',
-          text1: 'Food Expired!',
-          text2: 'Safety Rule: You cannot donate food that is already past its best before date.',
-          visibilityTime: 6000,
-       });
-       setSafetyRisk({ level: 'high', reason: 'BEST BEFORE DATE EXPIRED' });
-       return;
+      Toast.show({
+        type: 'error',
+        text1: 'Food Expired!',
+        text2: 'Safety Rule: You cannot donate food that is already past its best before date.',
+        visibilityTime: 6000,
+      });
+      setSafetyRisk({ level: 'high', reason: 'BEST BEFORE DATE EXPIRED' });
+      return;
     }
 
     if (safetyRisk && formData.ignoreSafetyRisk) {
@@ -338,7 +338,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
 
     setIsInspecting(true);
     setSafetyRisk(null);
-    
+
     try {
       logger.info('Running Paranoid Safety Inspector...');
       const inspectionDecision = await runShareBiteAgent(donorAgentPersona, {
@@ -369,12 +369,12 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
         }
 
         if (inspectionDecision.requiresImmediateRefrigeration) {
-           Toast.show({
-              type: 'info',
-              text1: 'Handling Instruction',
-              text2: 'AI detects this needs immediate refrigeration until pickup.',
-              visibilityTime: 5000,
-           });
+          Toast.show({
+            type: 'info',
+            text1: 'Handling Instruction',
+            text2: 'AI detects this needs immediate refrigeration until pickup.',
+            visibilityTime: 5000,
+          });
         }
 
         // Auto-fill and success
@@ -396,16 +396,16 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
       }
     } catch (e: any) {
       logger.error("AI Inspector failed to run", e);
-      
+
       // FALLBACK: Use Local Scanner if AI fails
       const localCheck = runLocalSafetyCheck(`${formData.title} ${formData.description}`);
-      
+
       if (localCheck.isSafe) {
         // AI was busy, but we verified locally. Silent success to keep UI clean.
         setCurrentStep(2);
       } else {
-        setSafetyRisk({ 
-          level: 'high', 
+        setSafetyRisk({
+          level: 'high',
           reason: localCheck.reason || 'Local scan detected safety risk.',
           advice: localCheck.advice
         });
@@ -433,11 +433,11 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
     }
 
     setAnalyzingAllergens(true);
-    
+
     // Safety Net: Local Keyword Scanning for typos
     const localAllergens: string[] = [];
     const textToScan = `${formData.title} ${formData.description} ${formData.ingredients}`.toLowerCase();
-    
+
     const LOCAL_ALLERGEN_MAP = [
       { id: 'Peanuts', keywords: ['peanut', 'peanit', 'penaut', 'moongphali'] },
       { id: 'Tree Nuts', keywords: ['nut', 'almond', 'walnut', 'cashew', 'kaju', ' अखरोट', 'बादाम'] },
@@ -542,7 +542,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
     // 1. FINAL EXPIRY CHECK (Normalized to the millisecond)
     const now = new Date();
     const expiryDate = formData.bestBefore instanceof Date ? formData.bestBefore : new Date(formData.bestBefore);
-    
+
     if (!expiryDate || isNaN(expiryDate.getTime()) || expiryDate.getTime() < now.getTime()) {
       setIsSubmitting(false);
       Toast.show({
@@ -555,13 +555,13 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
 
     // 2. FINAL AI SAFETY CHECK
     if (safetyRisk && safetyRisk.level === 'high' && !formData.ignoreSafetyRisk) {
-       setIsSubmitting(false);
-       Toast.show({
-         type: 'error',
-         text1: 'Safety Blocked',
-         text2: `AI Warning: ${safetyRisk.reason}`,
-       });
-       return;
+      setIsSubmitting(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Safety Blocked',
+        text2: `AI Warning: ${safetyRisk.reason}`,
+      });
+      return;
     }
 
     try {
@@ -570,7 +570,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
       // FETCH DONOR PROFILE (Gatekeeper also verifies role)
       let donorName = '';
       let donorPhone = '';
-      
+
       const userDoc = await firestore().collection('users').doc(effectiveUserId).get();
       if (userDoc.exists()) {
         const userData = userDoc.data();
@@ -613,7 +613,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
 
       // WRITE TO FIRESTORE
       const docRef = await firestore().collection('donations').add(donationData);
-      
+
       Toast.show({
         type: 'success',
         text1: 'Success!',
@@ -639,9 +639,9 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
         const isUrgentDonation = (expiryTime - nowTime) < (3 * 60 * 60 * 1000);
 
         const recs = await generateRecommendationsForDonation(
-          formData.foodType, 
-          parseInt(formData.servings) || 1, 
-          locationCoords, 
+          formData.foodType,
+          parseInt(formData.servings) || 1,
+          locationCoords,
           isUrgentDonation,
           formData.allergens
         );
@@ -653,7 +653,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
           resetForm();
           setTimeout(() => navigation.navigate('MyDonations'), 1000);
         }
-      } catch(e) {
+      } catch (e) {
         logger.error('Recommendation Engine Error', e);
         resetForm();
         setTimeout(() => navigation.navigate('MyDonations'), 1000);
@@ -921,7 +921,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
 
   const handleDuplicateConfirm = async () => {
     setShowDuplicateModal(false);
-    
+
     const auth = require('@react-native-firebase/auth').default;
     const currentUser = auth().currentUser;
     const effectiveUser = currentUser || user;
@@ -931,7 +931,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
       setIsSubmitting(true);
       await performFinalSubmission(effectiveUserId, effectiveUser);
     }
-    
+
     setDuplicateInfo(null);
     setPendingDonationData(null);
   };
@@ -1060,7 +1060,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Food Category *</Text>
                 <View style={[
-                  styles.pickerContainer, 
+                  styles.pickerContainer,
                   errors.foodType && { borderColor: colors.destructive, borderWidth: 1, padding: 8, borderRadius: borderRadius.md }
                 ]}>
                   {foodTypes.map((type) => (
@@ -1187,8 +1187,8 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
               <View style={styles.inputGroup}>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>Allergy Safety Chart</Text>
-                  <TouchableOpacity 
-                    style={styles.aiScanBtn} 
+                  <TouchableOpacity
+                    style={styles.aiScanBtn}
                     onPress={handleAllergenScan}
                     disabled={analyzingAllergens}
                   >
@@ -1203,11 +1203,11 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                <AllergyChart 
-                  selectedAllergens={formData.allergens} 
+                <AllergyChart
+                  selectedAllergens={formData.allergens}
                   horizontal={false}
                 />
-                
+
                 <View style={styles.allergenSelector}>
                   {ALLERGENS.slice(0, 8).map(a => (
                     <TouchableOpacity
@@ -1278,7 +1278,7 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
                         Safety Rejection: {safetyRisk.reason}
                       </Text>
                     </View>
-                    
+
                     {safetyRisk.risks && safetyRisk.risks.length > 0 && (
                       <View style={{ marginLeft: 22, marginBottom: 8 }}>
                         {safetyRisk.risks.map((risk, idx) => (
@@ -1288,32 +1288,32 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
                     )}
 
                     {safetyRisk.advice && (
-                      <View style={{ 
-                        backgroundColor: colors.white, 
-                        padding: spacing.sm, 
-                        borderRadius: borderRadius.sm, 
+                      <View style={{
+                        backgroundColor: colors.white,
+                        padding: spacing.sm,
+                        borderRadius: borderRadius.sm,
                         marginTop: spacing.xs,
                         borderLeftWidth: 3,
                         borderLeftColor: colors.primary
                       }}>
-                        <Text style={{ 
-                          fontSize: 12, 
-                          color: colors.foreground, 
+                        <Text style={{
+                          fontSize: 12,
+                          color: colors.foreground,
                           fontFamily: typography.fontFamily.semibold,
                           marginBottom: 2
                         }}>
                           💡 How to fix:
                         </Text>
-                        <Text style={{ 
-                          fontSize: 12, 
-                          color: colors.mutedForeground, 
-                          fontFamily: typography.fontFamily.regular 
+                        <Text style={{
+                          fontSize: 12,
+                          color: colors.mutedForeground,
+                          fontFamily: typography.fontFamily.regular
                         }}>
                           {safetyRisk.advice}
                         </Text>
                       </View>
                     )}
-                    
+
                     <TouchableOpacity
                       style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, padding: spacing.xs }}
                       onPress={() => setFormData(prev => ({ ...prev, ignoreSafetyRisk: !prev.ignoreSafetyRisk }))}
@@ -1323,10 +1323,10 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
                         size={20}
                         color={formData.ignoreSafetyRisk ? colors.destructive : colors.mutedForeground}
                       />
-                      <Text style={{ 
-                        marginLeft: spacing.xs, 
-                        fontSize: 12, 
-                        color: colors.foreground, 
+                      <Text style={{
+                        marginLeft: spacing.xs,
+                        fontSize: 12,
+                        color: colors.foreground,
                         flex: 1,
                         fontFamily: typography.fontFamily.medium
                       }}>
@@ -1395,10 +1395,10 @@ export const PostFoodDonation: React.FC<PostFoodDonationProps> = ({
                 <AddressAutocomplete
                   value={formData.location}
                   onAddressSelect={(address, coords) => {
-                    setFormData(prev => ({ 
-                      ...prev, 
+                    setFormData(prev => ({
+                      ...prev,
                       location: address,
-                      coordinates: coords || prev.coordinates 
+                      coordinates: coords || prev.coordinates
                     }));
                   }}
                   placeholder="Enter pickup address"

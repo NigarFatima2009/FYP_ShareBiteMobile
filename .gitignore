@@ -90,3 +90,4 @@ ios/ShareBite/Info.plist
 sharebite-42667-c61cbf524302.json
 android/app/src/main/res/values/google-services.json
 sharebite-42667-c61cbf524302.json
+src/backend/serviceAccountKey.json
