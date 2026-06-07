@@ -207,11 +207,23 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       // Only authenticated users can create, and must set themselves as the creator
       allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      // Users can only update their own requests
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+                      (request.resource.data.requesterId == request.auth.uid || 
+                       request.resource.data.ngoId == request.auth.uid || 
+                       request.resource.data.userId == request.auth.uid);
+      // Requesters, donors, and volunteers can update requests
+      allow update: if isAuthenticated() && 
+                      (resource.data.requesterId == request.auth.uid || 
+                       resource.data.ngoId == request.auth.uid || 
+                       resource.data.userId == request.auth.uid ||
+                       resource.data.donorId == request.auth.uid ||
+                       resource.data.volunteerId == request.auth.uid ||
+                       request.resource.data.volunteerId == request.auth.uid ||
+                       isAdmin());
       // Users can only delete their own requests, admins can delete any
-      allow delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow delete: if (isAuthenticated() && 
+                       (resource.data.requesterId == request.auth.uid || 
+                        resource.data.ngoId == request.auth.uid || 
+                        resource.data.userId == request.auth.uid)) || isAdmin();
     }
     
     // ========== NGO REQUIREMENTS ==========
