@@ -28,6 +28,11 @@ function getAdminApp(): admin.app.App {
         );
     }
 
+    // Fix double-escaped newlines in private_key (common when pasting into .env or Vercel)
+    if ((serviceAccount as any).private_key) {
+        (serviceAccount as any).private_key = (serviceAccount as any).private_key.replace(/\\n/g, '\n');
+    }
+
     return admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         projectId: (serviceAccount as any).project_id || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
